@@ -1,0 +1,46 @@
+version: "3.4"
+
+services:
+  redis:
+    image: redis
+    networks:
+      - private
+
+  mailer:
+    image: rmnclmnt/mailer:latest
+    environment:
+      - FLASK_ENV
+      - SERVER_NAME
+      - PREFERRED_URL_SCHEME
+      - TO_EMAIL
+      - TO_NAME
+      - CORS_ORIGINS
+      - MAILER_SERVICE
+      - SENDGRID_SANDBOX
+      - SECRET_KEY_FILE=/run/secrets/MAILER_SECRET_KEY
+      - SENDGRID_API_KEY_FILE=/run/secrets/MAILER_SENDGRID_API_KEY
+    secrets:
+      - MAILER_SECRET_KEY
+      - MAILER_SENDGRID_API_KEY
+    networks:
+      - private
+      - traefik_public
+    deploy:
+      labels:
+        - "traefik.docker.network=traefik_public"
+        - "traefik.frontend.rule=Host:${SERVER_NAME}"
+        - "traefik.port=5000"
+      restart_policy:
+        condition: on-failure
+
+secrets:
+  MAILER_SECRET_KEY:
+    external: true
+  MAILER_SENDGRID_API_KEY:
+    external: true
+
+networks:
+  private:
+    driver: overlay
+  traefik_public:
+    external: true

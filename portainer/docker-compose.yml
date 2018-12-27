@@ -1,0 +1,42 @@
+version: "3"
+
+services:
+  agent:
+    image: portainer/agent
+    environment:
+      - AGENT_CLUSTER_ADDR=tasks.agent
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/volumes:/var/lib/docker/volumes
+    networks:
+      - agent_private
+    deploy:
+      mode: global
+
+  portainer:
+    image: portainer/portainer
+    command: -H tcp://tasks.agent:9001 --tlsskipverify
+    volumes:
+      - portainer_data:/data
+    networks:
+      - agent_private
+      - traefik_public
+    deploy:
+      restart_policy:
+        condition: on-failure
+      labels:
+        - "traefik.docker.network=traefik_public"
+        - "traefik.frontend.rule=Host:${PORTAINER_DOMAIN}"
+        - "traefik.port=9000"
+      placement:
+        constraints: [node.role == manager]
+
+networks:
+  agent_private:
+    driver: overlay
+    internal: true
+  traefik_public:
+    external: true
+
+volumes:
+  portainer_data:
