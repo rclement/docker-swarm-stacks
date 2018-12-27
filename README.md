@@ -1,5 +1,7 @@
 # Docker Swarm Stacks
 
+Automated Docker Swarm stacks deployment.
+
 ## Requirements
 
 - `python3`
@@ -42,7 +44,7 @@ docker node ls
 4. Deploy the stack (environment variables and secrets will be automatically applied):
 
 ```
-inv stack-up -s <stack> -m <mode1,mode2>
+inv stack-up -s <stack>
 ```
 
 5. Take-down the stack:
