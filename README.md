@@ -50,3 +50,9 @@ inv stack-up -s <stack> -m <mode1,mode2>
 ```
 inv stack-down -s <stack>
 ```
+
+## License
+
+The MIT License (MIT)
+
+Copyright (c) 2018 Romain Clement
