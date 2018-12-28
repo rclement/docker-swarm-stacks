@@ -9,7 +9,7 @@ services:
       - "--docker"
       - "--docker.watch"
       - "--docker.swarmMode"
-      - "--docker.domain=${TRAEFIK_DOMAIN}"
+      - "--docker.domain=${TRAEFIK_DOCKER_DOMAIN}"
     ports:
       - "80:80"
       - "443:443"
@@ -23,7 +23,7 @@ services:
       labels:
        - "traefik.backend=traefik"
        - "traefik.docker.network=traefik_public"
-       - "traefik.frontend.rule=Host:traefik.${TRAEFIK_DOMAIN}"
+       - "traefik.frontend.rule=Host:${TRAEFIK_DOMAIN}"
        - "traefik.port=8080"
        - "traefik.frontend.auth.basic.users=${TRAEFIK_AUTH_USERNAME}:${TRAEFIK_AUTH_PASSWORD}"
 
