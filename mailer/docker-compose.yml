@@ -9,6 +9,7 @@ services:
   mailer:
     image: rmnclmnt/mailer:latest
     environment:
+      - FLASK_APP
       - FLASK_ENV
       - SERVER_NAME
       - PREFERRED_URL_SCHEME
