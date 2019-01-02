@@ -1,0 +1,108 @@
+version: "3.4"
+
+services:
+  db:
+    image: mariadb:latest
+    volumes:
+      - matomo_db:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=${MATOMO_MYSQL_DATABASE}
+      - MYSQL_RANDOM_ROOT_PASSWORD=yes
+      - MYSQL_USER_FILE=/run/secrets/MATOMO_MYSQL_USER
+      - MYSQL_PASSWORD_FILE=/run/secrets/MATOMO_MYSQL_PASSWORD
+    secrets:
+      - MATOMO_MYSQL_USER
+      - MATOMO_MYSQL_PASSWORD
+    networks:
+      - private
+
+  matomo:
+    image: crazymax/matomo:latest
+    depends_on:
+      - db
+    volumes:
+      - matomo_data:/data
+    networks:
+      - private
+      - traefik_public
+    deploy:
+      labels:
+        - "traefik.docker.network=traefik_public"
+        - "traefik.frontend.rule=Host:${MATOMO_DOMAIN}"
+        - "traefik.frontend.passHostHeader=true"
+        - "traefik.port=80"
+
+  cron_archive:
+    image: crazymax/matomo:latest
+    command:
+      - "php"
+      - "/var/www/console"
+      - "core:archive"
+      - "--no-interaction"
+      - "--url=https://${MATOMO_DOMAIN}/"
+      - "--concurrent-requests-per-website=${MATOMO_ARCHIVE_REQUESTS}"
+    depends_on:
+      - matomo
+    volumes:
+      - matomo_data:/data
+    networks:
+      - private
+    deploy:
+      labels:
+        - "swarm.cronjob.enable=true"
+        - "swarm.cronjob.schedule=${MATOMO_CRON_ARCHIVE}"
+        - "swarm.cronjob.skip-running=true"
+      replicas: 0
+      restart_policy:
+        condition: none
+
+  cron_geoip:
+    image: crazymax/matomo:latest
+    command:
+      - "/usr/local/bin/update_geoip"
+    depends_on:
+      - matomo
+    volumes:
+      - matomo_data:/data
+    networks:
+      - private
+    deploy:
+      labels:
+        - "swarm.cronjob.enable=true"
+        - "swarm.cronjob.schedule=${MATOMO_CRON_GEOIP}"
+        - "swarm.cronjob.skip-running=true"
+      replicas: 0
+      restart_policy:
+        condition: none
+
+  scheduler:
+    image: crazymax/swarm-cronjob:latest
+    depends_on:
+      - cron_archive
+      - cron_geoip
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    environment:
+      - "LOG_LEVEL=info"
+      - "LOG_NOCOLOR=true"
+    networks:
+      - private
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+secrets:
+  MATOMO_MYSQL_USER:
+    external: true
+  MATOMO_MYSQL_PASSWORD:
+    external: true
+
+networks:
+  private:
+    driver: overlay
+  traefik_public:
+    external: true
+
+volumes:
+  matomo_db:
+  matomo_data:
