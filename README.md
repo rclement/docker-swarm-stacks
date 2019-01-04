@@ -44,13 +44,19 @@ docker node ls
 4. Deploy the stack (environment variables and secrets will be automatically applied):
 
 ```
-inv stack-up -s <stack>
+inv stack-deploy -s <stack>
 ```
 
-5. Take-down the stack:
+5. To update the stack (do not recreate optional secrets):
 
 ```
-inv stack-down -s <stack>
+inv stack-update -s <stack>
+```
+
+6. Take-down the stack:
+
+```
+inv stack-rm -s <stack>
 ```
 
 ## License

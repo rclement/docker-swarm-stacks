@@ -60,7 +60,7 @@ def _remove_secrets(ctx, dot_secret_path):
 
 
 @task
-def stack_up(ctx, stack=None):
+def stack_deploy(ctx, stack=None):
     stack_path = _check_stack(stack)
     dot_env_path = _check_dot_env(stack_path)
     dot_secret_path = _check_dot_secret(stack_path)
@@ -72,7 +72,16 @@ def stack_up(ctx, stack=None):
 
 
 @task
-def stack_down(ctx, stack=None):
+def stack_update(ctx, stack=None):
+    stack_path = _check_stack(stack)
+    dot_env_path = _check_dot_env(stack_path)
+
+    with ctx.cd(stack_path):
+        ctx.run(f"docker stack deploy -c <(docker-compose config) {stack}")
+
+
+@task
+def stack_rm(ctx, stack=None):
     stack_path = _check_stack(stack)
     dot_secret_path = _check_dot_secret(stack_path)
 
