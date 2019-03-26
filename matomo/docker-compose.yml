@@ -30,7 +30,7 @@ services:
         - "traefik.docker.network=traefik_public"
         - "traefik.frontend.rule=Host:${MATOMO_DOMAIN}"
         - "traefik.frontend.passHostHeader=true"
-        - "traefik.port=80"
+        - "traefik.port=8000"
 
   cron_archive:
     image: crazymax/matomo:latest
